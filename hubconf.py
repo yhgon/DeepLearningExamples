@@ -220,7 +220,7 @@ def nvidia_waveglow(pretrained=True, **kwargs):
 
     if pretrained:
         m.load_state_dict(state_dict)
-    m2 = Denoiser(m)
+    m2 = Denoiser()
     return m, m2
 
 def nvidia_ssd_processing_utils():

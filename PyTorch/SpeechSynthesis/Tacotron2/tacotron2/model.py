@@ -324,7 +324,7 @@ class Decoder(nn.Module):
             dtype=dtype, device=device)
         return decoder_input
 
-    def initialize_decoder_states(self, memory):
+    def initialize_decoder_states(self, memory, mask=None):
         """ Initializes attention rnn states, decoder rnn states, attention
         weights, attention cumulative weights, attention context, stores memory
         and stores processed memory

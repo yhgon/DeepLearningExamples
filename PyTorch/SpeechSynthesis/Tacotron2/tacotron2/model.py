@@ -642,6 +642,9 @@ class Tacotron2(nn.Module):
         return (
             (text_padded, input_lengths, mel_padded, max_len, output_lengths),
             (mel_padded, gate_padded))
+    
+    def parse_input(self, inputs):
+        return inputs    
 
     def parse_output(self, outputs, output_lengths):
         # type: (List[Tensor], Tensor) -> List[Tensor]

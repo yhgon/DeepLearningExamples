@@ -605,7 +605,51 @@ class Decoder(nn.Module):
             mel_outputs, gate_outputs, alignments)
 
         return mel_outputs, gate_outputs, alignments, mel_lengths
+    
+    @torch.jit.export
+    def inference(self, memory):
+        """ Decoder inference
+        PARAMS
+        ------
+        memory: Encoder outputs
+        RETURNS
+        -------
+        mel_outputs: mel outputs from the decoder
+        gate_outputs: gate outputs from the decoder
+        alignments: sequence of attention weights from the decoder
+        """
+        decoder_input = self.get_go_frame(memory)
 
+        self.initialize_decoder_states(memory, mask=None)
+
+        mel_lengths = torch.zeros([memory.size(0)], dtype=torch.int32).cuda()
+        not_finished = torch.ones([memory.size(0)], dtype=torch.int32).cuda()
+        mel_outputs, gate_outputs, alignments = [], [], []
+        while True:
+            decoder_input = self.prenet(decoder_input)
+            mel_output, gate_output, alignment = self.decode(decoder_input)
+
+            mel_outputs += [mel_output.squeeze(1)]
+            gate_outputs += [gate_output]
+            alignments += [alignment]
+            dec = torch.le(torch.sigmoid(gate_output.data),
+                           self.gate_threshold).to(torch.int32).squeeze(1)
+
+            not_finished = not_finished*dec
+            mel_lengths += not_finished
+
+            if self.early_stopping and torch.sum(not_finished) == 0:
+                break
+            if len(mel_outputs) == self.max_decoder_steps:
+                print("Warning! Reached max decoder steps")
+                break
+
+            decoder_input = mel_output
+
+        mel_outputs, gate_outputs, alignments = self.parse_decoder_outputs(
+            mel_outputs, gate_outputs, alignments)
+
+        return mel_outputs, gate_outputs, alignments    
 
 class Tacotron2(nn.Module):
     def __init__(self, mask_padding, n_mel_channels,

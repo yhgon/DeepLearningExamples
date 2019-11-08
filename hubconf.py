@@ -183,7 +183,6 @@ def nvidia_waveglow(pretrained=True, **kwargs):
     """
 
     from PyTorch.SpeechSynthesis.Tacotron2.waveglow import model as waveglow
-    from PyTorch.SpeechSynthesis.Tacotron2.waveglow.denoiser import Denoiser as Denoiser
     from PyTorch.SpeechSynthesis.Tacotron2.models import batchnorm_to_float
 
     fp16 = "model_math" in kwargs and kwargs["model_math"] == "fp16"
@@ -220,8 +219,50 @@ def nvidia_waveglow(pretrained=True, **kwargs):
 
     if pretrained:
         m.load_state_dict(state_dict)
-    m2 = Denoiser()
-    return m, m2
+
+    return m
+
+def nvidia_denoiser(pretrained=True, **kwargs):
+    """Constructs a WaveGlow model (nn.module with additional infer(input) method).
+    For detailed information on model input and output, training recipies, inference and performance
+    visit: github.com/NVIDIA/DeepLearningExamples and/or ngc.nvidia.com
+    Args:
+        pretrained (bool): If True, returns a model pretrained on LJ Speech dataset.
+        model_math (str, 'fp32'): returns a model in given precision ('fp32' or 'fp16')
+    """
+
+    from PyTorch.SpeechSynthesis.Tacotron2.waveglow import model as waveglow
+    from PyTorch.SpeechSynthesis.Tacotron2.waveglow.denoiser import Denoiser as Denoiser
+    from PyTorch.SpeechSynthesis.Tacotron2.models import batchnorm_to_float
+
+    fp16 = "model_math" in kwargs and kwargs["model_math"] == "fp16"
+    force_reload = "force_reload" in kwargs and kwargs["force_reload"]
+
+    if pretrained:
+        if fp16:
+            checkpoint = 'https://developer.nvidia.com/joc-waveglow-fp16-pyt-20190306'
+        else:
+            checkpoint = 'https://developer.nvidia.com/joc-waveglow-fp32-pyt-20190306'
+        ckpt_file = _download_checkpoint(checkpoint, force_reload)
+        ckpt = torch.load(ckpt_file)
+        state_dict = ckpt['state_dict']
+        if checkpoint_from_distributed(state_dict):
+            state_dict = unwrap_distributed(state_dict)
+        config = ckpt['config']
+    else:
+        config = {'n_mel_channels': 80, 'n_flows': 12, 'n_group': 8,
+                  'n_early_every': 4, 'n_early_size': 2,
+                  'WN_config': {'n_layers': 8, 'kernel_size': 3,
+                                'n_channels': 512}}
+        for k,v in kwargs.items():
+            if k in config.keys():
+                config[k] = v
+            elif k in config['WN_config'].keys():
+                config['WN_config'][k] = v
+
+    m = waveglow.WaveGlow(**config)
+    m2 = Denoiser(m)
+    return m2
 
 def nvidia_ssd_processing_utils():
     import numpy as np

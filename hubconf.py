@@ -183,7 +183,7 @@ def nvidia_waveglow(pretrained=True, **kwargs):
     """
 
     from PyTorch.SpeechSynthesis.Tacotron2.waveglow import model as waveglow
-    from PyTorch.SpeechSynthesis.Tacotron2.waveglow import denoiser as Denoiser
+    from PyTorch.SpeechSynthesis.Tacotron2.waveglow.denoiser import Denoiser as Denoiser
     from PyTorch.SpeechSynthesis.Tacotron2.models import batchnorm_to_float
 
     fp16 = "model_math" in kwargs and kwargs["model_math"] == "fp16"

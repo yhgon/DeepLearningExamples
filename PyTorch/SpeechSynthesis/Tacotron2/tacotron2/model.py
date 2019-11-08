@@ -246,6 +246,18 @@ class Encoder(nn.Module):
 
         return outputs
 
+    @torch.jit.ignore    
+    def inference(self, x):
+        for conv in self.convolutions:
+            x = F.dropout(F.relu(conv(x)), 0.5, self.training)
+
+        x = x.transpose(1, 2)
+
+        self.lstm.flatten_parameters()
+        outputs, _ = self.lstm(x)
+
+        return outputs
+    
 
 class Decoder(nn.Module):
     def __init__(self, n_mel_channels, n_frames_per_step,
@@ -690,7 +702,7 @@ class Tacotron2(nn.Module):
 
         return mel_outputs_postnet, mel_lengths
 
-    def infer2(self, inputs):
+    def inference(self, inputs):
         inputs = self.parse_input(inputs)
         embedded_inputs = self.embedding(inputs).transpose(1, 2)
         encoder_outputs = self.encoder.inference(embedded_inputs)

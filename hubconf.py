@@ -261,7 +261,16 @@ def nvidia_denoiser(pretrained=True, **kwargs):
                 config['WN_config'][k] = v
 
     m = waveglow.WaveGlow(**config)
-    m2 = Denoiser(m)
+
+    if fp16:
+        m = batchnorm_to_float(m.half())
+        for mat in m.convinv:
+            mat.float()
+
+    if pretrained:
+        m.load_state_dict(state_dict)
+        
+    m2 = Denoiser(m.cuda())
     return m2
 
 def nvidia_ssd_processing_utils():

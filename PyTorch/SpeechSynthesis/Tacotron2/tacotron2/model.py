@@ -634,7 +634,17 @@ class Decoder(nn.Module):
         mel_outputs, gate_outputs, alignments = [], [], []
         while True:
             decoder_input = self.prenet(decoder_input)
-            mel_output, gate_output, alignment = self.decode(decoder_input)
+            mel_output, gate_output, alignment = self.decode(decoder_input, 
+                                              attention_hidden,
+                                              attention_cell,
+                                              decoder_hidden,
+                                              decoder_cell,
+                                              attention_weights,
+                                              attention_weights_cum,
+                                              attention_context,
+                                              memory,
+                                              processed_memory,
+                                              mask) 
 
             mel_outputs += [mel_output.squeeze(1)]
             gate_outputs += [gate_output]

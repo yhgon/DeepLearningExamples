@@ -620,7 +620,14 @@ class Decoder(nn.Module):
         """
         decoder_input = self.get_go_frame(memory)
 
-        self.initialize_decoder_states(memory, mask=None)
+         (attention_hidden,
+         attention_cell,
+         decoder_hidden,
+         decoder_cell,
+         attention_weights,
+         attention_weights_cum,
+         attention_context,
+         processed_memory) = self.initialize_decoder_states(memory, mask=None)
 
         mel_lengths = torch.zeros([memory.size(0)], dtype=torch.int32).cuda()
         not_finished = torch.ones([memory.size(0)], dtype=torch.int32).cuda()

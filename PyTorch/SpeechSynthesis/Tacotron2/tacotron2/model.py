@@ -619,8 +619,8 @@ class Decoder(nn.Module):
         alignments: sequence of attention weights from the decoder
         """
         decoder_input = self.get_go_frame(memory)
-
-         (attention_hidden,
+        
+        (attention_hidden,
          attention_cell,
          decoder_hidden,
          decoder_cell,

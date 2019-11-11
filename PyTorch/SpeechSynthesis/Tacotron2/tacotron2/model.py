@@ -644,7 +644,7 @@ class Decoder(nn.Module):
                                               attention_context,
                                               memory,
                                               processed_memory,
-                                              mask) 
+                                              mask=None) 
 
             mel_outputs += [mel_output.squeeze(1)]
             gate_outputs += [gate_output]

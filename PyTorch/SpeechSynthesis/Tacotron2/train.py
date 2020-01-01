@@ -321,6 +321,7 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate,
                                  weight_decay=args.weight_decay)
 
+    amp = None
     if args.amp_run:
         model, optimizer = amp.initialize(model, optimizer, opt_level="O1")
         if distributed_run:
